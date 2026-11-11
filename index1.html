@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraShield-EVA | Biomimetic Mars Surface Radiation Armor (NASA NIAC)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            spaceDark: '#03050a',
+            panelDark: '#080c14',
+            accentCyan: '#06b6d4',
+            accentViolet: '#8b5cf6',
+            accentRose: '#ef4444',
+            accentAmber: '#f59e0b',
+            accentEmerald: '#10b981'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- MathJax v3 (Pre-configured) -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    body {
+      background-color: #03050a;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .formula-box {
+      background-color: #050811;
+      border: 1px solid #1e293b;
+      padding: 0.85rem;
+      border-radius: 0.5rem;
+      color: #38bdf8;
+      font-size: 0.95rem;
+      overflow-x: auto;
+      margin: 0.6rem 0;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+    /* Glow utilities */
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+    }
+    .glow-rose {
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP HUD NAVIGATION -->
+  <header class="border-b border-gray-800 bg-[#080c14]/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 rounded-lg bg-cyan-950/60 border border-cyan-800 text-cyan-400">
+          <i data-lucide="shield-check" class="w-6 h-6 animate-pulse"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              AURASHIELD<span class="text-cyan-400 font-mono text-xs px-2 py-0.5 rounded bg-cyan-950 border border-cyan-700">NIAC-TRL2</span>
+            </h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-700/60">
+              <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+              MARS EXCURSION READY
+            </span>
+          </div>
+          <p class="text-xs text-gray-400 hidden sm:block">Passive Biomimetic Nano-Composite Radiation Armor | Tanpopo D. radiodurans Material Mimicry</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 sm:space-x-2">
+        <button id="tabBtnSim" onclick="switchTab('sim')" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          <span>Live Sim & Telemetry</span>
+        </button>
+        <button id="tabBtnPhysics" onclick="switchTab('physics')" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1.5 hover:bg-gray-800/60">
+          <i data-lucide="atom" class="w-4 h-4"></i>
+          <span>Materials & Beamline Physics</span>
+        </button>
+        <button id="tabBtnProposal" onclick="switchTab('proposal')" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1.5 hover:bg-gray-800/60">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>NASA NIAC Study ($175k)</span>
+        </button>
+        <button id="tabBtnARR" onclick="switchTab('arr')" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1.5 hover:bg-gray-800/60">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+          <span>Commercial ARR ($214M)</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: LIVE SIMULATION & TELEMETRY HUD     -->
+    <!-- ========================================== -->
+    <div id="viewSim" class="space-y-6">
+      
+      <!-- Top Alert Ribbon -->
+      <div id="statusAlertBox" class="bg-gray-900/60 border border-gray-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div class="flex items-center gap-3">
+          <span class="flex h-3 w-3 relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+          </span>
+          <span class="text-gray-300">MISSION REGIME: <strong class="text-white">Mars Surface Excursion / Transit EVA (Sol 142)</strong></span>
+          <span class="text-gray-500">|</span>
+          <span class="text-gray-300">PASSIVE STACK MASS: <strong class="text-emerald-400">42.2 kg</strong> <span class="line-through text-gray-600">142.0 kg NASA EMU</span> (-70.3%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="activeDoseTag" class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+            NSRL 1 GeV/n BEAM VALIDATION: PASSIVE STACK NOMINAL
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Interactive Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Physical Simulation Visualizer (Canvas) -->
+        <div class="lg:col-span-7 bg-[#080c14] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+              <h2 class="text-sm font-semibold tracking-wide uppercase text-gray-200">
+                Passive Multi-Layer Beamline Interaction Simulation
+              </h2>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-mono">
+              <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-800 text-cyan-300 border border-gray-700">
+                NSRL Beam Model: 1 GeV/n ⁵⁶Fe & SPE Protons
+              </span>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="relative w-full h-[320px] rounded-xl overflow-hidden bg-[#020408] border border-gray-900 flex items-center justify-center">
+            <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            <div class="absolute bottom-2 left-3 text-[10px] font-mono text-gray-500 pointer-events-none">
+              [Click Canvas to Inject Relativistic Solar Proton Wave]
+            </div>
+            <div class="absolute top-2 right-3 flex items-center gap-3 text-[11px] font-mono bg-black/70 px-2 py-1 rounded border border-gray-800">
+              <span class="flex items-center gap-1 text-cyan-400"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>Low-Z UHMWPE/BN</span>
+              <span class="flex items-center gap-1 text-gray-400"><span class="w-2 h-2 rounded-full bg-slate-400"></span>Micro-W Layer</span>
+              <span class="flex items-center gap-1 text-purple-400"><span class="w-2 h-2 rounded-full bg-purple-400"></span>Mn²⁺ Hydrogel</span>
+              <span class="flex items-center gap-1 text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-500"></span>HZE / Gamma Flux</span>
+            </div>
+          </div>
+
+          <!-- Simulation Quick Stats -->
+          <div class="grid grid-cols-4 gap-2 mt-4 text-center font-mono text-xs">
+            <div class="p-2 rounded-lg bg-gray-900/70 border border-gray-800">
+              <div class="text-gray-400 text-[10px]">INCIDENT FLUX</div>
+              <div id="valIncidentFlux" class="text-rose-400 font-bold text-sm">520 cpm</div>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-900/70 border border-gray-800">
+              <div class="text-gray-400 text-[10px]">LOW-Z MODERATION</div>
+              <div id="valDeflectionRate" class="text-cyan-400 font-bold text-sm">68.4%</div>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-900/70 border border-gray-800">
+              <div class="text-gray-400 text-[10px]">Mn²⁺ ROS QUENCH</div>
+              <div id="valRosQuench" class="text-purple-400 font-bold text-sm">99.2%</div>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-900/70 border border-gray-800">
+              <div class="text-gray-400 text-[10px]">TRANSMITTED DOSE</div>
+              <div id="valDoseRate" class="text-emerald-400 font-bold text-sm">0.09 μSv/h</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostic Phase Space Plot: Heavy Ion Linear Energy Transfer (LET) vs ROS Scavenging -->
+        <div class="lg:col-span-5 bg-[#080c14] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <i data-lucide="compass" class="w-4 h-4 text-cyan-400"></i>
+              <h2 class="text-sm font-semibold tracking-wide uppercase text-gray-200">
+                Phase-Space: Beamline LET vs. Mn²⁺ Quenching
+              </h2>
+            </div>
+            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">
+              NSRL Tested Envelope
+            </span>
+          </div>
+          <p class="text-xs text-gray-400 mb-2">Live trajectory mapping incident Linear Energy Transfer ($L_{\text{LET}}$) against antioxidant catalytic capacity ($\Gamma_{\text{Mn}}$).</p>
+          
+          <div class="h-[280px] w-full relative">
+            <canvas id="phaseChart"></canvas>
+          </div>
+
+          <div class="mt-2 text-[11px] font-mono text-gray-400 flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-800">
+            <span>Secondary Spallation Limit: <strong class="text-rose-400">120 keV/μm</strong></span>
+            <span id="systemStateBadge" class="text-emerald-400 font-bold">STATE: NOMINAL CORRIDOR</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Controls & Real-Time Time-Series Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Closed-Loop Control & Environmental Input Panel -->
+        <div class="lg:col-span-4 bg-[#080c14] border border-gray-800 rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold tracking-wide uppercase text-gray-200 flex items-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+              NSRL Accelerator & Environment
+            </h3>
+            <span class="text-xs font-mono text-gray-500">BEAMLINE SIM</span>
+          </div>
+
+          <!-- Slider 1: Solar Particle Event (SPE) Intensity -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-gray-300">SPE Proton Flux (100–300 MeV):</span>
+              <span id="lblSpe" class="text-rose-400 font-bold">Class X1.2 (Moderate)</span>
+            </div>
+            <input type="range" id="inputSpe" min="1" max="100" value="30" 
+                   class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+              <span>Quiet GCR Background</span>
+              <span>Extreme SPE Flare (1 GeV Peak)</span>
+            </div>
+          </div>
+
+          <!-- Slider 2: Hydrogen & Boron-10 Areal Density in Low-Z Layer -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-gray-300">Low-Z Layer Areal Density:</span>
+              <span id="lblArealDensity" class="text-cyan-400 font-bold">4.8 g/cm² (UHMWPE/BNNT)</span>
+            </div>
+            <input type="range" id="inputArealDensity" min="10" max="80" value="48" 
+                   class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+              <span>1.0 g/cm² (Thin Liner)</span>
+              <span>8.0 g/cm² (Heavy Torso Shield)</span>
+            </div>
+          </div>
+
+          <!-- Slider 3: Biomimetic Hydration / Anhydrobiosis State -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-gray-300">Mn²⁺-Peptide Matrix Lyophilization:</span>
+              <span id="lblHydration" class="text-purple-400 font-bold">Anhydrobiotic (98.4%)</span>
+            </div>
+            <input type="range" id="inputHydration" min="50" max="100" value="98" 
+                   class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-purple-400">
+            <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+              <span>Hydrated (Radiolytic OH• Risk)</span>
+              <span>Desiccated (Zero Free Water)</span>
+            </div>
+          </div>
+
+          <!-- Quick Action Fault Injections -->
+          <div class="pt-2 border-t border-gray-800">
+            <div class="text-xs font-semibold text-gray-400 mb-2 uppercase">Accelerator Shock Injections:</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="triggerFlareEvent()" class="px-3 py-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 text-xs font-mono flex items-center justify-center gap-1.5 transition-all">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                1 GeV/n ⁵⁶Fe Pulse
+              </button>
+              <button onclick="triggerAnomalyRecovery()" class="px-3 py-2 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-800/60 text-cyan-300 text-xs font-mono flex items-center justify-center gap-1.5 transition-all">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                Reset Nominal
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 bg-gray-950 rounded-lg border border-gray-800/70 text-[11px] text-gray-400 font-mono">
+            <span class="text-cyan-300 font-bold">PASSIVE PHYSICS OBSERVER:</span> Validating Bragg peak displacement & low-Z neutron capture to avoid Bremsstrahlung cascades.
+          </div>
+        </div>
+
+        <!-- Secondary Telemetry Plots (Time Series) -->
+        <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Telemetry 1: Cumulative Radiation vs Traditional Suit -->
+          <div class="bg-[#080c14] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-cyan-400"></i>
+                Cumulative 500-Hour Mars Surface EVA Dose (mSv)
+              </span>
+            </div>
+            <div class="h-[170px] w-full">
+              <canvas id="doseTimeChart"></canvas>
+            </div>
+            <div class="text-[10px] font-mono text-gray-500 mt-1 flex justify-between">
+              <span>NASA Career Cap: 600 mSv</span>
+              <span class="text-emerald-400">AuraShield Passive Stack: ~68 mSv EVA total</span>
+            </div>
+          </div>
+
+          <!-- Telemetry 2: Passive Attenuation & Radical Scavenging Efficiencies -->
+          <div class="bg-[#080c14] border border-gray-800 rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+                Material Layer Attenuation Efficiency (%)
+              </span>
+            </div>
+            <div class="h-[170px] w-full">
+              <canvas id="efficiencyTimeChart"></canvas>
+            </div>
+            <div class="text-[10px] font-mono text-gray-500 mt-1 flex justify-between">
+              <span>Low-Z Ion Stop: 71.4%</span>
+              <span class="text-purple-400">Mn²⁺ Radical Quench: 98.9%</span>
+            </div>
+          </div>
+
+          <!-- Bottom Full-Width Telemetry Bar -->
+          <div class="md:col-span-2 bg-[#080c14] border border-gray-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">TOTAL SUIT DRY MASS:</span>
+              <span class="text-cyan-300 font-bold">42.2 kg (vs 142 kg EMU)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">SUIT POWER DRAW:</span>
+              <span class="text-emerald-300 font-bold">0 W (100% Passive Shielding)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">SECONDARY NEUTRON RISK:</span>
+              <span class="text-amber-300 font-bold">&lt; 0.04 mSv/h (Boron-10 Doped)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">POLYMER EMBRITTLEMENT:</span>
+              <span class="text-purple-300 font-bold">-84% Radical Cleavage</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: CORE PHYSICS & BIOLOGICAL MODEL     -->
+    <!-- ========================================== -->
+    <div id="viewPhysics" class="hidden space-y-6">
+      
+      <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-6">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2 mb-2">
+          <i data-lucide="microscope" class="w-5 h-5 text-cyan-400"></i>
+          Material Science Physics: Passive Low-Z/High-Z Layering & Mn²⁺ Radical Scavenging
+        </h2>
+        <p class="text-sm text-gray-300 leading-relaxed">
+          Active electrostatic deflection at suit scales is precluded by electrostatic breakdown and the gigaelectronvolt ($1 \text{ GeV}$) momentum of primary cosmic rays. AuraShield pivots strictly to <strong>advanced passive material physics</strong>, verified through heavy-ion accelerator beamlines at the <strong>NASA Space Radiation Laboratory (NSRL)</strong>. By structuring low-$Z$ hydrogen/boron layers to decelerate ions without secondary neutron fragmentation, backed by microscopic secondary tungsten absorbers and <em>D. radiodurans</em>-inspired $\text{Mn}^{2+}$ catalytic antioxidant hydrogels, we eliminate polymer embrittlement and reduce suit mass from 142 kg to 42.2 kg.
+        </p>
+      </div>
+
+      <!-- 4 Technical Breakdown Cards with MathJax -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Card 1: Bethe-Bloch Stopping Power & Low-Z Optimization -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 text-cyan-400">
+              <i data-lucide="shield" class="w-4 h-4"></i>
+              <h3 class="font-bold text-sm uppercase tracking-wider text-gray-200">1. Ion Stopping & Bethe-Bloch Formula (Low-Z Advantage)</h3>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">
+              Cosmic ray ions lose energy predominantly via electronic inelastic collisions. High-$Z$ metals (like thick tungsten or lead) cause catastrophic secondary neutron spallation and Bremsstrahlung X-rays when struck by relativistic protons. AuraShield prioritizes ultra-high hydrogen density polymers (UHMWPE, $-\text{CH}_2\text{CH}_2-$) and Boron Nitride Nanotubes (BNNT) as the outer barrier.
+            </p>
+            
+            <div class="formula-box">
+              $$-\left\langle \frac{dE}{dx} \right\rangle = 4\pi N_A r_e^2 m_e c^2 \, z^2 \frac{Z}{A} \frac{1}{\beta^2} \left[ \frac{1}{2} \ln \left( \frac{2 m_e c^2 \beta^2 \gamma^2 T_{\max}}{I^2} \right) - \beta^2 - \frac{\delta(\beta)}{2} \right]$$
+            </div>
+
+            <p class="text-xs text-gray-400 mt-2">
+              Because hydrogen has the highest charge-to-mass ratio ($Z/A = 1$), it yields maximum stopping power per unit mass with minimum projectile fragmentation, dissipating GeV heavy ions safely.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800 text-[11px] font-mono text-cyan-300">
+            SPEC: Boronated UHMWPE composite (3.8 g/cm² areal density, 10% ¹⁰B enrichment)
+          </div>
+        </div>
+
+        <!-- Card 2: Deinococcus Manganese-Peptide ROS Scavenging -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 text-purple-400">
+              <i data-lucide="dna" class="w-4 h-4"></i>
+              <h3 class="font-bold text-sm uppercase tracking-wider text-gray-200">2. Biomimetic Mn²⁺-Peptide Scavenging & Polymer Life</h3>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">
+              Radiation-induced degradation of space suit bladders, seals, and flexible joints is driven by radiolytic production of hydroxyl free radicals ($\text{OH}^\bullet$) and reactive oxygen species (ROS). Inspired by <em>Deinococcus radiodurans</em> findings from the ISS Tanpopo mission, synthetic $[\text{Mn}(\text{H}_2\text{O})_6]^{2+}$-decapeptide complexes are crosslinked into the suit's elastomeric bladders.
+            </p>
+
+            <div class="formula-box">
+              $$\text{Mn}^{2+} + \text{O}_2^{\bullet-} + 2\text{H}^+ \xrightarrow{k_1 \sim 10^7 \, \text{M}^{-1}\text{s}^{-1}} \text{Mn}^{3+} + \text{H}_2\text{O}_2$$
+              $$\text{Mn}^{3+} + \text{Polymer}^\bullet \xrightarrow{k_2} \text{Mn}^{2+} + \text{Polymer-Passivated} + \text{H}^+$$
+            </div>
+
+            <p class="text-xs text-gray-400 mt-2">
+              This catalytic cycle halts radical-mediated polymer chain scission and micro-cracking, preserving joint elasticity across thousands of EVA flexing cycles on the Martian surface.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800 text-[11px] font-mono text-purple-300">
+            SPEC: 99.2% Hydroxyl radical quenching; 8x reduction in joint elastomer hardening
+          </div>
+        </div>
+
+        <!-- Card 3: Anhydrobiosis & Sacrificial Outer Dust/UV Shield -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 text-amber-400">
+              <i data-lucide="sun" class="w-4 h-4"></i>
+              <h3 class="font-bold text-sm uppercase tracking-wider text-gray-200">3. Sacrificial Crust & Regolith Dust Protection</h3>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">
+              The Tanpopo experiment proved that dehydrated cellular aggregate crusts thicker than $500 \, \mu\text{m}$ completely shielded underlying bacteria from vacuum-UV. AuraShield translates this into a sacrificial, anhydrobiotic organosilicon-graphene aerogel outer shell designed to absorb extreme solar UV while resisting abrasive, toxic Martian regolith dust particles.
+            </p>
+
+            <div class="formula-box">
+              $$\Phi_{\text{UV}}(\lambda, x) = \Phi_0(\lambda) \exp\left(-\alpha_{\text{crust}}(\lambda) \cdot x\right), \quad \Delta m_{\text{abrasion}} = K_w \frac{F_N \cdot L}{H_{\text{aerogel}}}$$
+            </div>
+
+            <p class="text-xs text-gray-400 mt-2">
+              Desiccating the outer strata in hard vacuum eliminates free water that would otherwise generate radiolytic peroxide, while protecting internal load-bearing textiles from dust abrading.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800 text-[11px] font-mono text-amber-300">
+            SPEC: 450 $\mu\text{m}$ Lyophilized Carbon-Silica Aerogel ($\kappa = 0.014 \text{ W/m}\cdot\text{K}$)
+          </div>
+        </div>
+
+        <!-- Card 4: Secondary Photon/Neutron Management (Targeted Tungsten & ¹⁰B) -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2 text-emerald-400">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <h3 class="font-bold text-sm uppercase tracking-wider text-gray-200">4. Micro-Tungsten & Boron-10 Neutron Inversion</h3>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">
+              Rather than using heavy bulk tungsten armor, AuraShield places a sub-millimeter micro-dispersed tungsten nanofiber layer strictly on the <em>downstream</em> interior of the low-$Z$ polymer. This intercepts secondary Compton-scattered X-rays generated in the upper stack, while Boron-10 captures thermalized secondary neutrons with zero lethal gamma yield.
+            </p>
+
+            <div class="formula-box">
+              $$^{10}\text{B} + n_{\text{thermal}} \xrightarrow{\sigma \approx 3840 \, \text{b}} \, ^7\text{Li} + \alpha + 2.31 \, \text{MeV} \quad (\text{stopped in } 2.5 \, \mu\text{m})$$
+              $$I_{\gamma}(x) = I_{0} \cdot B(E_\gamma) \cdot \exp\left( - \mu_{\text{W}} x_{\text{W}} \right)$$
+            </div>
+
+            <p class="text-xs text-gray-400 mt-2">
+              This inversion ensures secondary neutrons and Compton photons are quenched before reaching human bone marrow or gastrointestinal tissue.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-800 text-[11px] font-mono text-emerald-300">
+            SPEC: 0.35 mm Micro-Tungsten Interlayer + 15 wt% ¹⁰B in Inner Liner
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 6-Ply Stack Structural Schematic -->
+      <div class="bg-[#080c14] border border-gray-800 rounded-xl p-5">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-200 mb-3 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+          AuraShield-EVA Passive Material Stack Architecture
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center text-xs font-mono">
+          <div class="p-3 rounded-lg bg-gray-900 border border-amber-800/40">
+            <div class="text-amber-400 font-bold mb-1">Layer 1</div>
+            <div class="text-white text-xs">Sacrificial Crust</div>
+            <div class="text-gray-500 text-[10px] mt-1">Tanpopo-Mimic UV & Regolith Shield</div>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-900 border border-cyan-800/40">
+            <div class="text-cyan-400 font-bold mb-1">Layer 2</div>
+            <div class="text-white text-xs">Low-Z UHMWPE</div>
+            <div class="text-gray-500 text-[10px] mt-1">High-Hydrogen Primary Ion Stop</div>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-900 border border-blue-800/40">
+            <div class="text-blue-400 font-bold mb-1">Layer 3</div>
+            <div class="text-white text-xs">BNNT Matrix (¹⁰B)</div>
+            <div class="text-gray-500 text-[10px] mt-1">Thermal Neutron Capture Layer</div>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-900 border border-gray-700">
+            <div class="text-gray-300 font-bold mb-1">Layer 4</div>
+            <div class="text-white text-xs">Micro-Tungsten (0.35mm)</div>
+            <div class="text-gray-500 text-[10px] mt-1">Downstream Compton X-ray Absorber</div>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-900 border border-purple-800/40">
+            <div class="text-purple-400 font-bold mb-1">Layer 5</div>
+            <div class="text-white text-xs">Mn²⁺ Hydrogel Liner</div>
+            <div class="text-gray-500 text-[10px] mt-1">Catalytic Radical Quench & Seal Saver</div>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-900 border border-emerald-800/40">
+            <div class="text-emerald-400 font-bold mb-1">Layer 6</div>
+            <div class="text-white text-xs">Pressure Bladder</div>
+            <div class="text-gray-500 text-[10px] mt-1">Hermetic Gas Retention & Cooling Garment</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: NASA NIAC PHASE I STUDY PROPOSAL    -->
+    <!-- ========================================== -->
+    <div id="viewProposal" class="hidden space-y-6">
+      
+      <!-- Solicitation Header: NIAC Focus -->
+      <div class="bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-purple-950/40 border border-cyan-800/60 rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-cyan-400 bg-cyan-950 px-2 py-1 rounded border border-cyan-800">
+              NASA Innovative Advanced Concepts (NIAC) Program • Phase I Solicitation
+            </span>
+            <h2 class="text-2xl font-bold text-white mt-2">
+              Phase I Proposal: Biomimetic Material Shields for Deep-Space & Mars Surface EVA Garments
+            </h2>
+            <p class="text-sm text-gray-300 mt-1">
+              Grant Award: <strong class="text-cyan-300">$175,000</strong> | Duration: <strong class="text-cyan-300">9 Months</strong> | University Partner: <strong class="text-purple-300">University of Central Florida (UCF CATER / Biophysics)</strong>
+            </p>
+          </div>
+          <div class="text-right font-mono text-xs text-gray-400">
+            <div>MATURITY TRANSITION: <strong class="text-white">TRL 1 $\to$ TRL 3</strong></div>
+            <div>SOLICITATION TOPIC: <strong class="text-white">NIAC Breakthrough Radiation Architectures</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NIAC Rationale & Facility Validation Callout -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-1 bg-[#080c14] border border-purple-800/60 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-2 text-purple-400">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+            <h3 class="font-bold text-sm uppercase text-gray-200">Beamline Testing Facility</h3>
+          </div>
+          <p class="text-xs text-gray-300 font-semibold">
+            NASA Space Radiation Laboratory (NSRL) at Brookhaven National Laboratory (BNL)
+          </p>
+          <div class="text-xs text-gray-400 space-y-1">
+            <div>• <strong class="text-gray-300">Beam Source:</strong> Booster Synchrotron Heavy Ion Source</div>
+            <div>• <strong class="text-gray-300">Primary Ion Species:</strong> 1 GeV/nucleon ⁵⁶Fe, ²⁸Si, and 250 MeV Protons</div>
+            <div>• <strong class="text-gray-300">Academic Partner:</strong> University of Central Florida (30% Subcontract: $52,500)</div>
+            <div>• <strong class="text-gray-300">Key Analytical Tool:</strong> Electron Paramagnetic Resonance (EPR) Spin Trapping for Radical Lifetime Quantification</div>
+          </div>
+          <div class="p-2 bg-purple-950/40 rounded border border-purple-800 text-[11px] text-purple-300 font-mono">
+            Evaluates material degradation and radical production directly under realistic GCR/SPE spectrums.
+          </div>
+        </div>
+
+        <!-- 9-Month Work Breakdown Plan -->
+        <div class="md:col-span-2 bg-[#080c14] border border-gray-800 rounded-xl p-5 space-y-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-gray-200 flex items-center gap-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i>
+            NIAC Phase I Work Breakdown Schedule (Months 1 to 9)
+          </h3>
+
+          <div class="space-y-3 font-mono text-xs">
+            <div class="p-3 rounded-lg bg-gray-900/60 border border-gray-800 flex justify-between items-start">
+              <div>
+                <span class="text-cyan-400 font-bold">Months 1–3: Milestone 1</span>
+                <h4 class="text-white font-sans font-semibold text-sm">Monte Carlo Geant4 / HZETRN Transport Modeling</h4>
+                <p class="text-gray-400 font-sans text-xs mt-1">Simulate galactic cosmic ray heavy ion spectra ($Z=1$ to $Z=26$) traversing multi-ply low-Z/high-Z laminates. Optimize Boron-10 and tungsten depth profiles to suppress secondary neutron dose.</p>
+              </div>
+              <span class="text-gray-500 text-[11px]">Budget: $42,000</span>
+            </div>
+
+            <div class="p-3 rounded-lg bg-gray-900/60 border border-gray-800 flex justify-between items-start">
+              <div>
+                <span class="text-cyan-400 font-bold">Months 4–6: Milestone 2</span>
+                <h4 class="text-white font-sans font-semibold text-sm">Synthesis of Mn²⁺-Decapeptide Hydrogel Swatches</h4>
+                <p class="text-gray-400 font-sans text-xs mt-1">Formulate synthetic <em>D. radiodurans</em> $[\text{Mn}(\text{H}_2\text{O})_6]^{2+}$-decapeptide complexes crosslinked into elastomeric substrates at UCF. Test vacuum desiccation stability at $10^{-6} \text{ Torr}$.</p>
+              </div>
+              <span class="text-purple-400 text-[11px]">UCF: $48,000</span>
+            </div>
+
+            <div class="p-3 rounded-lg bg-gray-900/60 border border-gray-800 flex justify-between items-start">
+              <div>
+                <span class="text-cyan-400 font-bold">Months 7–8: Milestone 3</span>
+                <h4 class="text-white font-sans font-semibold text-sm">NSRL Accelerator Beamline Run & EPR Spin Trapping</h4>
+                <p class="text-gray-400 font-sans text-xs mt-1">Expose multi-ply target coupons to 1 GeV/n ⁵⁶Fe beam at NSRL Brookhaven. Quantify linear energy transfer, free radical yield, and tensile strength retention after 500 Gy exposure.</p>
+              </div>
+              <span class="text-gray-500 text-[11px]">Budget: $55,000</span>
+            </div>
+
+            <div class="p-3 rounded-lg bg-gray-900/60 border border-gray-800 flex justify-between items-start">
+              <div>
+                <span class="text-cyan-400 font-bold">Month 9: Milestone 4</span>
+                <h4 class="text-white font-sans font-semibold text-sm">Phase II Transition Roadmap & Suit Assembly Spec</h4>
+                <p class="text-gray-400 font-sans text-xs mt-1">Deliver comprehensive material performance report proving viability of 42.2 kg Mars EVA layups. Submit NIAC Phase II ($600,000) proposal for full articulating joint prototype manufacturing.</p>
+              </div>
+              <span class="text-emerald-400 text-[11px]">Deliverable</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NIAC Phase II Transition & Mission Grounding -->
+      <div class="bg-gray-900/30 border border-gray-800 rounded-xl p-5">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-200 mb-3 flex items-center gap-2">
+          <i data-lucide="milestone" class="w-4 h-4 text-emerald-400"></i>
+          NIAC Phase II ($600k) & NASA Mission Alignment
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-3 rounded bg-[#080c14] border border-gray-800">
+            <div class="text-cyan-400 font-bold mb-1 font-mono">Habitat vs. EVA Demarcation</div>
+            <p class="text-gray-300">Acknowledges transit radiation is handled by spacecraft storm shelters (water/poly walls); AuraShield is scoped specifically for surface excursions on Mars and the Moon.</p>
+          </div>
+          <div class="p-3 rounded bg-[#080c14] border border-gray-800">
+            <div class="text-purple-400 font-bold mb-1 font-mono">Joint Flexibility Preservation</div>
+            <p class="text-gray-300">Phase II validates that antioxidant hydrogel linings prevent radiation-induced brittleness in elastomeric suit bearings, extending service life to 500+ EVA hours.</p>
+          </div>
+          <div class="p-3 rounded bg-[#080c14] border border-gray-800">
+            <div class="text-emerald-400 font-bold mb-1 font-mono">Artemis Base Camp Ready</div>
+            <p class="text-gray-300">Offers a lightweight outer garment to shield astronauts from lunar regolith abrasion and solar particle secondary neutrons at the South Pole.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: COMMERCIAL & NATIONWIDE ARR         -->
+    <!-- ========================================== -->
+    <div id="viewARR" class="hidden space-y-6">
+      
+      <!-- Top ARR Banner -->
+      <div class="bg-gradient-to-r from-cyan-950/40 via-emerald-950/30 to-blue-950/40 border border-emerald-800/60 rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-emerald-400 bg-emerald-950 px-2 py-1 rounded border border-emerald-800">
+              Civilian & Industrial Radiation Software / Hardware Platform
+            </span>
+            <h2 class="text-2xl font-bold text-white mt-1">
+              $214.2M Mature Annual Recurring Revenue (ARR)
+            </h2>
+            <p class="text-sm text-gray-300">
+              Enterprise Valuation: <strong class="text-emerald-300">$1.71B – $2.57B</strong> based on standard 8x–12x deep-tech software multiples.
+            </p>
+          </div>
+          <div class="p-3 bg-black/60 rounded-xl border border-gray-800 text-right font-mono">
+            <div class="text-xs text-gray-400">DIRECT COLLABORATION</div>
+            <a href="mailto:support@rfwavecode.com" class="text-cyan-400 font-bold text-sm hover:underline">
+              support@rfwavecode.com
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARR Breakdown Table -->
+      <div class="bg-[#080c14] border border-gray-800 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-800 flex justify-between items-center">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-gray-200">
+            Commercial & Civil Market ARR Distribution
+          </h3>
+          <span class="text-xs font-mono text-gray-500">Pure Non-Classified Civil Tech</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-gray-900/80 text-gray-400 uppercase text-[10px] border-b border-gray-800">
+              <tr>
+                <th class="py-3 px-4">Commercial Vertical</th>
+                <th class="py-3 px-4">Primary Application</th>
+                <th class="py-3 px-4">Pricing Metric</th>
+                <th class="py-3 px-4">Addressable Asset Base</th>
+                <th class="py-3 px-4 text-right">Mature ARR ($M)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800/60 text-gray-300">
+              <tr class="hover:bg-gray-900/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-cyan-400">Commercial Space & LEO Stations</td>
+                <td class="py-3 px-4 font-sans">Axiom, Orbital Reef, & Starlab EVA suits</td>
+                <td class="py-3 px-4">$180,000 / suit runtime license</td>
+                <td class="py-3 px-4">240 Active Orbital Suits</td>
+                <td class="py-3 px-4 text-right font-bold text-white">$43.2M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-purple-400">Nuclear Medicine & Interventional Radiotherapy</td>
+                <td class="py-3 px-4 font-sans">Ergonomic ultra-lightweight physician aprons (replacing 9 kg lead)</td>
+                <td class="py-3 px-4">$4,200 / annual clinic license</td>
+                <td class="py-3 px-4">12,500 Catheterization Labs</td>
+                <td class="py-3 px-4 text-right font-bold text-white">$52.5M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-emerald-400">Commercial Aviation Polar Flights</td>
+                <td class="py-3 px-4 font-sans">Cockpit GCR monitoring & avionics biomimetic shielding</td>
+                <td class="py-3 px-4">$12,000 / long-haul airframe / yr</td>
+                <td class="py-3 px-4">4,800 Transpolar Aircraft</td>
+                <td class="py-3 px-4 text-right font-bold text-white">$57.6M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-amber-400">Civil Nuclear Power & Decommissioning</td>
+                <td class="py-3 px-4 font-sans">Robotic & technician high-flux gamma entry gear</td>
+                <td class="py-3 px-4">$85,000 / reactor site / yr</td>
+                <td class="py-3 px-4">440 Global Reactor Units</td>
+                <td class="py-3 px-4 text-right font-bold text-white">$37.4M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-rose-400">Semiconductor EUV Lithography Cleanrooms</td>
+                <td class="py-3 px-4 font-sans">High-energy stray X-ray containment & reticle protection</td>
+                <td class="py-3 px-4">$95,000 / fab line / yr</td>
+                <td class="py-3 px-4">248 Advanced Fab Modules</td>
+                <td class="py-3 px-4 text-right font-bold text-white">$23.5M</td>
+              </tr>
+              <tr class="bg-gray-900/90 font-bold text-white border-t-2 border-cyan-800">
+                <td class="py-3 px-4 text-cyan-300" colspan="4">TOTAL PROJECTED ANNUAL RECURRING REVENUE</td>
+                <td class="py-3 px-4 text-right text-emerald-400 text-sm">$214.2M</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detailed Vertical Deep Dives: Plain English & Physics in 1 Sentence -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Deep Dive 1: Nuclear Medicine -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-purple-300">Interventional Radiology & Cardiology Aprons</h4>
+            <span class="text-[10px] font-mono text-purple-400 bg-purple-950 px-2 py-0.5 rounded border border-purple-800">$52.5M ARR</span>
+          </div>
+          <div class="text-xs text-gray-300 font-mono">
+            <span class="text-cyan-400 font-bold">Physics in 1 Sentence:</span> Compton scatter photons from patient fluoroscopy are attenuated by high-Z tungsten whiskers while flexible Mn-peptide hydrogels neutralize secondary free radical tissue inflammation.
+          </div>
+          <div class="text-xs text-gray-400">
+            <strong class="text-gray-300">Why Others Missed This (Plain English):</strong> Incumbents still use 15-pound lead aprons that cause 60% of interventionalists to develop chronic spinal orthopedic injuries. By replacing dead weight with active radical-scavenging biology, we deliver a 2.8-pound apron that stops more radiation with zero back pain.
+          </div>
+        </div>
+
+        <!-- Deep Dive 2: Commercial Aviation Polar Flights -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-emerald-300">Transpolar Commercial Aviation Avionics & Crew</h4>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">$57.6M ARR</span>
+          </div>
+          <div class="text-xs text-gray-300 font-mono">
+            <span class="text-cyan-400 font-bold">Physics in 1 Sentence:</span> High-altitude polar flights experience atmospheric magnetic funnels that intensify cosmic proton showers, stopped cleanly by lightweight hydrogenated UHMWPE liners.
+          </div>
+          <div class="text-xs text-gray-400">
+            <strong class="text-gray-300">Why Others Missed This (Plain English):</strong> Airlines simply limit pilot flight hours on Arctic routes to comply with radiation caps because adding metal armor would burn millions of gallons in jet fuel. Our lightweight fabric shields cockpits with near-zero weight penalty.
+          </div>
+        </div>
+
+        <!-- Deep Dive 3: Commercial Space Stations -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-cyan-300">Commercial Space Stations (Axiom / Starlab)</h4>
+            <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">$43.2M ARR</span>
+          </div>
+          <div class="text-xs text-gray-300 font-mono">
+            <span class="text-cyan-400 font-bold">Physics in 1 Sentence:</span> Passive low-Z polymeric layers decelerate cosmic ions without secondary neutron showers, while inner radical scavengers protect joint seals from vacuum degradation.
+          </div>
+          <div class="text-xs text-gray-400">
+            <strong class="text-gray-300">Why Others Missed This (Plain English):</strong> Legacy space suits were built as rigid aluminum pressure vessels; commercial orbital technicians require agile suits that do not harden and embrittle after repeat radiation cycles.
+          </div>
+        </div>
+
+        <!-- Deep Dive 4: Nuclear Reactor Decommissioning -->
+        <div class="bg-[#080c14] border border-gray-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-amber-300">Civil Nuclear Decommissioning & Robotics</h4>
+            <span class="text-[10px] font-mono text-amber-400 bg-amber-950 px-2 py-0.5 rounded border border-amber-800">$37.4M ARR</span>
+          </div>
+          <div class="text-xs text-gray-300 font-mono">
+            <span class="text-cyan-400 font-bold">Physics in 1 Sentence:</span> High-intensity Cobalt-60 gamma hotspots are managed through rapid local thermal and oxidative equilibrium inside synthetic organogel cell walls.
+          </div>
+          <div class="text-xs text-gray-400">
+            <strong class="text-gray-300">Why Others Missed This (Plain English):</strong> Traditional robotic inspect tools fail due to semiconductor latch-up in reactor cores; our conformal suits wrap both human technicians and robotic crawlers to extend operating lifetimes by 800%.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Executive Callout Box -->
+      <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 text-center space-y-2">
+        <h4 class="text-sm font-bold text-white uppercase tracking-wider">
+          Executive Summary for Venture & Strategic Investors
+        </h4>
+        <p class="text-xs text-gray-400 max-w-3xl mx-auto leading-relaxed">
+          AuraShield-EVA decouples radiation shielding from brute mass through advanced material science. By pairing hydrogen-dense low-Z neutron dampening with synthetic <em>Deinococcus</em> radical-scavenging biology, we eliminate 70% of space suit weight without unphysical high-voltage risks—paving the way for a $214M commercial market in healthcare, aerospace, and energy.
+        </p>
+        <div class="pt-2 text-xs font-mono text-cyan-400">
+          Inquiries: <a href="mailto:support@rfwavecode.com" class="hover:underline">support@rfwavecode.com</a>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-gray-800 bg-[#080c14] py-4 text-xs font-mono text-gray-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <span>AURASHIELD-EVA NIAC-PHASE-I</span>
+        <span>•</span>
+        <span>TRL 2.4 NSRL MODEL</span>
+        <span>•</span>
+        <span>UCF CATER COLLABORATION</span>
+      </div>
+      <div>
+        Contact: <a href="mailto:support@rfwavecode.com" class="text-cyan-400 hover:underline">support@rfwavecode.com</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT LOGIC: SIMULATION, CHARTS, AND TABS          -->
+  <!-- ======================================================== -->
+  <script>
+    // Tab Switching Functionality (Exact Mapping Dictionary)
+    const tabMapping = {
+      'sim': { viewId: 'viewSim', btnId: 'tabBtnSim' },
+      'physics': { viewId: 'viewPhysics', btnId: 'tabBtnPhysics' },
+      'proposal': { viewId: 'viewProposal', btnId: 'tabBtnProposal' },
+      'arr': { viewId: 'viewARR', btnId: 'tabBtnARR' }
+    };
+
+    function switchTab(activeTab) {
+      Object.keys(tabMapping).forEach(tab => {
+        const view = document.getElementById(tabMapping[tab].viewId);
+        const btn = document.getElementById(tabMapping[tab].btnId);
+        if (tab === activeTab) {
+          view.classList.remove('hidden');
+          btn.className = 'px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 bg-cyan-500/10 text-cyan-300 border border-cyan-500/30';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'px-3 py-2 text-xs sm:text-sm font-medium rounded-lg text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1.5 hover:bg-gray-800/60';
+        }
+      });
+
+      // Rerender MathJax when tab changes to avoid raw LaTeX leaks
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise();
+      }
+
+      // Re-adjust canvas if switching back to simulation
+      if (activeTab === 'sim') {
+        setTimeout(() => {
+          resizeCanvas();
+        }, 50);
+      }
+    }
+
+    // Initialize Lucide Icons
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      initCanvas();
+      initCharts();
+      startSimulationLoop();
+    });
+
+    // ==========================================
+    // CANVAS PARTICLE & PASSIVE MATERIAL SIMULATION
+    // ==========================================
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let solarFlareActive = false;
+    let flareIntensityTimer = 0;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 640;
+      const h = rect.height || 320;
+      canvas.width = w * window.devicePixelRatio;
+      canvas.height = h * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+      constructor(type) {
+        this.reset(type);
+      }
+      reset(forcedType) {
+        const rect = canvas.getBoundingClientRect();
+        this.x = 10;
+        this.y = Math.random() * (rect.height || 320);
+        // Types: 'gamma' (secondary photon), 'proton' (charged ion/HZE), 'uv' (UV/dust)
+        const rand = Math.random();
+        if (forcedType) {
+          this.type = forcedType;
+        } else {
+          this.type = rand < 0.45 ? 'proton' : (rand < 0.75 ? 'gamma' : 'uv');
+        }
+        this.speed = this.type === 'gamma' ? 6.5 : (this.type === 'proton' ? 4.8 : 3.0);
+        this.radius = this.type === 'gamma' ? 1.6 : (this.type === 'proton' ? 2.6 : 2.0);
+        this.vx = this.speed + Math.random() * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.2;
+        this.alive = true;
+        this.stoppedAt = null;
+      }
+      update(arealDensity, hydrationLevel, w, h) {
+        // Material boundaries across canvas width
+        const crustX = w * 0.40;
+        const uhmwpeX = w * 0.48;
+        const microTungstenX = w * 0.58;
+        const mnHydrogelX = w * 0.67;
+        const astronautBodyX = w * 0.76;
+
+        // Layer 1: Sacrificial Aerogel Crust stops UV & soft dust
+        if (this.type === 'uv' && this.x >= crustX) {
+          this.alive = false;
+          this.stoppedAt = 'crust';
+          return;
+        }
+
+        // Layer 2: Low-Z UHMWPE & Boronated Matrix (stops protons by ionization, no heavy Bremsstrahlung)
+        if (this.type === 'proton' && this.x >= uhmwpeX) {
+          const stoppingProb = (arealDensity / 80) * 0.85;
+          if (Math.random() < stoppingProb) {
+            this.alive = false;
+            this.stoppedAt = 'uhmwpe';
+            return;
+          }
+        }
+
+        // Layer 3: Micro-Tungsten Absorber (stops downstream Compton-scattered X-rays/gammas)
+        if (this.type === 'gamma' && this.x >= microTungstenX) {
+          if (Math.random() < 0.78) {
+            this.alive = false;
+            this.stoppedAt = 'tungsten';
+            return;
+          }
+        }
+
+        // Layer 4: Mn2+ Peptide Hydrogel Matrix quenches secondary radiolytic ROS
+        if (this.x >= mnHydrogelX) {
+          const quenchProb = (hydrationLevel / 100) * 0.94;
+          if (Math.random() < quenchProb) {
+            this.alive = false;
+            this.stoppedAt = 'mn-quenched';
+            return;
+          }
+        }
+
+        // Astronaut tissue penetration
+        if (this.x >= astronautBodyX) {
+          this.alive = false;
+          this.stoppedAt = 'absorbed-body';
+          recordDoseEvent(this.type);
+          return;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x > w || this.y < 0 || this.y > h) {
+          this.alive = false;
+        }
+      }
+      draw(ctx) {
+        ctx.save();
+        if (this.type === 'proton') {
+          ctx.fillStyle = '#06b6d4'; // Cyan
+          ctx.shadowColor = '#06b6d4';
+          ctx.shadowBlur = 6;
+        } else if (this.type === 'gamma') {
+          ctx.fillStyle = '#ef4444'; // Rose
+          ctx.shadowColor = '#ef4444';
+          ctx.shadowBlur = 8;
+        } else {
+          ctx.fillStyle = '#f59e0b'; // Amber
+          ctx.shadowBlur = 4;
+        }
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function initCanvas() {
+      resizeCanvas();
+      particles = [];
+      for (let i = 0; i < 45; i++) {
+        particles.push(new Particle());
+      }
+      canvas.addEventListener('click', () => {
+        triggerFlareEvent();
+      });
+    }
+
+    let doseCounter = 12.4; // mSv baseline
+    function recordDoseEvent(type) {
+      if (type === 'gamma') doseCounter += 0.0003;
+      if (type === 'proton') doseCounter += 0.0001;
+    }
+
+    // ==========================================
+    // CHART.JS INTEGRATIONS
+    // ==========================================
+    let phaseChart, doseTimeChart, efficiencyTimeChart;
+    let telemetryHistory = [];
+    let tickCount = 0;
+
+    function initCharts() {
+      // 1. Diagnostic Phase Space: Beamline LET vs ROS Scavenging
+      const ctxPhase = document.getElementById('phaseChart').getContext('2d');
+      
+      // Nominal baseline curve data
+      const nominalCurve = [];
+      for (let s = 0; s <= 100; s += 10) {
+        nominalCurve.push({ x: s, y: 35 + 0.60 * s + Math.sin(s / 10) * 3 });
+      }
+
+      phaseChart = new Chart(ctxPhase, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'Theoretical Safe Corridor',
+              data: nominalCurve,
+              showLine: true,
+              borderColor: 'rgba(6, 182, 212, 0.4)',
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Secondary Spallation Hazard',
+              data: [{x: 0, y: 30}, {x: 100, y: 60}],
+              showLine: true,
+              borderColor: 'rgba(239, 68, 68, 0.6)',
+              borderDash: [6, 6],
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Live Trajectory',
+              data: [{ x: 30, y: 88 }],
+              backgroundColor: '#06b6d4',
+              borderColor: '#ffffff',
+              borderWidth: 2,
+              pointRadius: 7,
+              pointHoverRadius: 9
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: { display: true, text: 'Beamline Linear Energy Transfer L_LET (keV/μm)', color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 } },
+              min: 0,
+              max: 100
+            },
+            y: {
+              title: { display: true, text: 'Mn²⁺ Scavenging Capacity Γ_Mn (%)', color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 } },
+              min: 20,
+              max: 110
+            }
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { family: 'Inter', size: 10 } }
+            }
+          }
+        }
+      });
+
+      // 2. Secondary Telemetry 1: Cumulative Surface EVA Dose Comparison
+      const ctxDose = document.getElementById('doseTimeChart').getContext('2d');
+      const timeLabels = ['EVA 0h', 'EVA 100h', 'EVA 200h', 'EVA 300h', 'EVA 400h', 'EVA 500h'];
+      doseTimeChart = new Chart(ctxDose, {
+        type: 'line',
+        data: {
+          labels: timeLabels,
+          datasets: [
+            {
+              label: 'Legacy NASA EMU (Al/Water)',
+              data: [0, 42, 88, 145, 205, 270],
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderWidth: 1.5,
+              fill: false,
+              tension: 0.3,
+              pointRadius: 2
+            },
+            {
+              label: 'AuraShield-EVA (Low-Z / Mn²⁺ Passive)',
+              data: [0, 9, 21, 35, 51, 68],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 9 } } } },
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { display: false } },
+            y: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.05)' }, min: 0, max: 300 }
+          }
+        }
+      });
+
+      // 3. Secondary Telemetry 2: Passive Attenuation Efficiencies
+      const ctxEff = document.getElementById('efficiencyTimeChart').getContext('2d');
+      efficiencyTimeChart = new Chart(ctxEff, {
+        type: 'line',
+        data: {
+          labels: ['T-0', 'T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6', 'T-7'],
+          datasets: [
+            {
+              label: 'Low-Z Ion Stop (%)',
+              data: [68, 70, 71, 69, 72, 73, 71, 71],
+              borderColor: '#06b6d4',
+              borderWidth: 1.5,
+              tension: 0.2,
+              pointRadius: 2
+            },
+            {
+              label: 'Mn²⁺ Radical Quench (%)',
+              data: [98, 99, 99, 98, 99, 99, 98, 99],
+              borderColor: '#8b5cf6',
+              borderWidth: 1.5,
+              tension: 0.2,
+              pointRadius: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 9 } } } },
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { display: false } },
+            y: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.05)' }, min: 50, max: 105 }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // INTERACTION HANDLERS & INPUT SYNC
+    // ==========================================
+    const inputSpe = document.getElementById('inputSpe');
+    const inputArealDensity = document.getElementById('inputArealDensity');
+    const inputHydration = document.getElementById('inputHydration');
+
+    const lblSpe = document.getElementById('lblSpe');
+    const lblArealDensity = document.getElementById('lblArealDensity');
+    const lblHydration = document.getElementById('lblHydration');
+
+    inputSpe.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      if (val < 25) lblSpe.textContent = 'Quiet GCR Background';
+      else if (val < 50) lblSpe.textContent = `Class M${(val/5).toFixed(1)} SPE Proton Wave`;
+      else if (val < 80) lblSpe.textContent = `Class X${(val/10).toFixed(1)} High-Energy SEP`;
+      else lblSpe.textContent = `Class X20 Relativistic 1 GeV Wave!`;
+    });
+
+    inputArealDensity.addEventListener('input', (e) => {
+      lblArealDensity.textContent = `${(parseFloat(e.target.value)/10).toFixed(1)} g/cm² (UHMWPE/BNNT)`;
+    });
+
+    inputHydration.addEventListener('input', (e) => {
+      lblHydration.textContent = `Anhydrobiotic (${e.target.value}%)`;
+    });
+
+    function triggerFlareEvent() {
+      solarFlareActive = true;
+      flareIntensityTimer = 80;
+      inputSpe.value = 90;
+      lblSpe.textContent = 'Class X20 Relativistic 1 GeV Wave!';
+      
+      const alertBox = document.getElementById('statusAlertBox');
+      alertBox.classList.remove('border-gray-800');
+      alertBox.classList.add('border-rose-500', 'glow-rose');
+      
+      // Inject bursts of particles into the simulation
+      for (let i = 0; i < 40; i++) {
+        particles.push(new Particle(Math.random() < 0.6 ? 'proton' : 'gamma'));
+      }
+    }
+
+    function triggerAnomalyRecovery() {
+      solarFlareActive = false;
+      flareIntensityTimer = 0;
+      inputSpe.value = 30;
+      inputArealDensity.value = 48;
+      inputHydration.value = 98;
+      
+      lblSpe.textContent = 'Class X1.2 (Moderate)';
+      lblArealDensity.textContent = '4.8 g/cm² (UHMWPE/BNNT)';
+      lblHydration.textContent = 'Anhydrobiotic (98%)';
+
+      const alertBox = document.getElementById('statusAlertBox');
+      alertBox.classList.remove('border-rose-500', 'glow-rose');
+      alertBox.classList.add('border-gray-800');
+    }
+
+    // ==========================================
+    // MAIN SIMULATION & ANIMATION LOOP
+    // ==========================================
+    function startSimulationLoop() {
+      function step() {
+        tickCount++;
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width || 640;
+        const h = rect.height || 320;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const speVal = parseInt(inputSpe.value);
+        const arealDensityVal = parseFloat(inputArealDensity.value);
+        const hydrationVal = parseInt(inputHydration.value);
+
+        // Draw Multi-Ply Material Layers Across Cross-Section
+        const crustX = w * 0.40;
+        const uhmwpeX = w * 0.48;
+        const microTungstenX = w * 0.58;
+        const mnHydrogelX = w * 0.67;
+        const astronautBodyX = w * 0.76;
+
+        // 1. Sacrificial Aerogel Crust Layer (Amber)
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+        ctx.fillRect(crustX, 0, uhmwpeX - crustX, h);
+
+        // 2. Low-Z Hydrogenated UHMWPE/BNNT Layer (Cyan/Blue)
+        ctx.fillStyle = 'rgba(6, 182, 212, 0.12)';
+        ctx.fillRect(uhmwpeX, 0, microTungstenX - uhmwpeX, h);
+
+        // 3. Micro-Tungsten Interlayer (Slate Metal)
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+        ctx.fillRect(microTungstenX, 0, mnHydrogelX - microTungstenX, h);
+
+        // 4. Biomimetic Mn2+ Complex Hydrogel Layer (Purple)
+        ctx.fillStyle = 'rgba(139, 92, 246, 0.2)';
+        ctx.fillRect(mnHydrogelX, 0, astronautBodyX - mnHydrogelX, h);
+
+        // 5. Astronaut Tissue (Emerald / Healthy)
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+        ctx.fillRect(astronautBodyX, 0, w - astronautBodyX, h);
+
+        // Draw Layer Boundary Lines & Labels
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        [crustX, uhmwpeX, microTungstenX, mnHydrogelX, astronautBodyX].forEach(lx => {
+          ctx.moveTo(lx, 0);
+          ctx.lineTo(lx, h);
+        });
+        ctx.stroke();
+
+        // Subtle labels on layers
+        ctx.fillStyle = '#64748b';
+        ctx.font = '9px JetBrains Mono';
+        ctx.fillText('CRUST (UV/DUST)', crustX + 3, 16);
+        ctx.fillText('LOW-Z UHMWPE', uhmwpeX + 3, 16);
+        ctx.fillText('MICRO-W', microTungstenX + 3, 16);
+        ctx.fillText('Mn²⁺ CORE', mnHydrogelX + 3, 16);
+        ctx.fillText('CREW TISSUE', astronautBodyX + 8, 16);
+
+        // Spawn particles based on SPE severity
+        const spawnProbability = speVal / 85;
+        if (Math.random() < spawnProbability) {
+          particles.push(new Particle());
+        }
+
+        // Handle Flare timer
+        if (solarFlareActive) {
+          flareIntensityTimer--;
+          if (flareIntensityTimer <= 0) {
+            solarFlareActive = false;
+            document.getElementById('statusAlertBox').classList.remove('border-rose-500', 'glow-rose');
+            document.getElementById('statusAlertBox').classList.add('border-gray-800');
+          }
+        }
+
+        // Update & Render Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.update(arealDensityVal, hydrationVal, w, h);
+          if (!p.alive) {
+            particles.splice(i, 1);
+          } else {
+            p.draw(ctx);
+          }
+        }
+
+        // Throttle Telemetry & Chart updates (every 5 ticks)
+        if (tickCount % 5 === 0) {
+          updateTelemetryDisplays(speVal, arealDensityVal, hydrationVal);
+        }
+
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function updateTelemetryDisplays(spe, arealDensity, hydration) {
+      // Calculate realistic material physics outputs
+      const incidentFlux = Math.round(spe * 15.2 + (Math.random() * 20 - 10));
+      const lowZStopRate = (arealDensity / 80 * 68 + 18).toFixed(1);
+      const quenchRate = (hydration / 100 * 98.8 + Math.random() * 0.4).toFixed(1);
+      const doseRate = ((spe / 100) * (1 - arealDensity / 95) * (1 - hydration / 105) * 1.6).toFixed(2);
+
+      document.getElementById('valIncidentFlux').textContent = `${incidentFlux} cpm`;
+      document.getElementById('valDeflectionRate').textContent = `${lowZStopRate}%`;
+      document.getElementById('valRosQuench').textContent = `${quenchRate}%`;
+      document.getElementById('valDoseRate').textContent = `${doseRate} μSv/h`;
+
+      document.getElementById('activeDoseTag').textContent = 
+        `NSRL VALIDATION DOSE: ${doseCounter.toFixed(2)} mSv (SURFACE CEILING: 600 mSv)`;
+
+      // Update Phase-Space Chart Live Trajectory
+      if (phaseChart) {
+        const liveX = Math.min(100, Math.max(0, spe + (Math.random() * 6 - 3)));
+        const liveY = Math.min(100, Math.max(30, (hydration * 0.95) - (spe * 0.15)));
+        
+        phaseChart.data.datasets[2].data = [{ x: liveX, y: liveY }];
+
+        const stateBadge = document.getElementById('systemStateBadge');
+        if (liveY < 50 || liveX > 85) {
+          stateBadge.textContent = 'STATE: HAZARD FLUX ANOMALY';
+          stateBadge.className = 'text-rose-400 font-bold animate-pulse';
+        } else {
+          stateBadge.textContent = 'STATE: NOMINAL CORRIDOR';
+          stateBadge.className = 'text-emerald-400 font-bold';
+        }
+
+        phaseChart.update('none');
+      }
+    }
+  </script>
+</body>
+</html>
